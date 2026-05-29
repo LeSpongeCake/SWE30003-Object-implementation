@@ -1,4 +1,6 @@
+import csv
 from collections import defaultdict
+from dataclasses import asdict
 
 from .book import Book
 from .singleton import Singleton
@@ -96,6 +98,25 @@ class Catalogue(metaclass=Singleton):
 
         # Pagination
         return books[offset:offset + limit]
+    
+    def export_csv(self, path: str):
+        """Export the catalogue to a CSV file."""
+        books = self.get_books()
+        if not books:
+            return
+        
+        with open(path, "w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(
+                file,
+                fieldnames=asdict(books[0]).keys()
+            )
+            writer.writeheader()
+            for book in books:
+                row = asdict(book)
+                # Convert list of authors into a string
+                row["authors"] = ",".join(book.authors)
+                writer.writerow(row)
+
     
     def _get_books_by(self, attr: str, attr_value) -> list[Book]:
         nested_dict = self.indexes.get(attr)

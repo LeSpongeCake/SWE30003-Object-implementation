@@ -12,3 +12,6 @@ class Book():
     publisher: str
     publication_date: date
     price: float
+
+    def __post_init__(self):
+        self.price = round(float(self.price), 2)

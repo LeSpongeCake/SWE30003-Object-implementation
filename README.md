@@ -14,3 +14,6 @@ cd backend
 fastapi dev main.py
 ```
 This will start the backend FastAPI server on your local machine at port 8000.
+
+### API documentation
+Once the FastAPI application is running, navigate to http://127.0.0.1:8000/docs in your web browser to view the automatic API documentation.
