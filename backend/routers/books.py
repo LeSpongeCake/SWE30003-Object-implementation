@@ -71,7 +71,7 @@ def get_book(book_id: int, catalogue: Catalogue = Depends(get_catalogue)):
 
 
 @router.post(
-    "/",
+    "/add",
     response_model=BookResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Add a book to the catalogue",
