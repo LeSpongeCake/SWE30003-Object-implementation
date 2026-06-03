@@ -14,6 +14,14 @@ router = APIRouter(tags=["stock"])
 def get_stock(stock_manager=Depends(get_stock_manager)):
     return stock_manager.get_stock()
 
+@router.get(
+    "/{book_id}",
+    summary="Show current stock for the given book",
+    description="Return the current stock level for the given book_id.",
+)
+def get_stock_by_id(book_id: int, stock_manager=Depends(get_stock_manager)):
+    return stock_manager.get_stock_by_id(book_id)
+
 
 @router.post(
     "/add",

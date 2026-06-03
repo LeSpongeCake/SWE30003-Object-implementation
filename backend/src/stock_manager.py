@@ -13,6 +13,12 @@ class StockManager(metaclass=Singleton):
 
     def get_stock(self):
         return dict(self.stock)
+    
+    def get_stock_by_id(self, book_id: int) -> int:
+        stock = self.stock.get(book_id)
+        if stock is None:
+            return -1
+        return stock
 
     def add_stock(self, book_id: int, qty: int):
         """Adds qty to the stock for the given book_id."""

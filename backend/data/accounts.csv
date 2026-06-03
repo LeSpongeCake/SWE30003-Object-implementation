@@ -1,5 +1,5 @@
-id,username,password,role
-1,realcustomer123@yahoo.com,password,customer
-2,ilovebooks69@gmail.com,123456789,customer
-3,swinburne@outlook.com,qwerty,customer
-4,admin@books.com,admin,admin
+id,name,username,password,role
+1,John Smith,realcustomer123@yahoo.com,5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8,customer
+2,Book Reader,ilovebooks69@gmail.com,15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225,customer
+3,Razorback,swinburne@outlook.com,65e84be33532fb784c48129675f9eff3a682b27168c0ea744b2cf58ee02337c5,customer
+4,Admin,admin@books.com,8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918,admin
