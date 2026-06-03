@@ -1,6 +1,7 @@
 from catalogue import Catalogue
 
-class ShoppingCart():
+
+class ShoppingCart:
     def __init__(self, catalogue: Catalogue):
         # Maps book id to the corresponding item quantity
         self.cart: dict[int, int] = {}

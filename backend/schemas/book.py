@@ -2,6 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
+
 class CreateBookRequest(BaseModel):
     title: str
     authors: list[str]

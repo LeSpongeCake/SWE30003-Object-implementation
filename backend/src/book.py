@@ -1,8 +1,9 @@
 from datetime import date
 from dataclasses import dataclass
 
+
 @dataclass
-class Book():
+class Book:
     id: int
     title: str
     authors: list[str]

@@ -1,5 +1,6 @@
 from .account import Account
 
+
 class GuestAccount(Account):
     def __init__(
         self, 

@@ -5,6 +5,7 @@ from dataclasses import asdict
 from .singleton import Singleton
 from .catalogue import Catalogue
 
+
 class StockManager(metaclass=Singleton):
     def __init__(self, catalogue: Catalogue):
         self.catalogue = catalogue

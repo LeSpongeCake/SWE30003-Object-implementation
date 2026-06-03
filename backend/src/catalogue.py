@@ -5,6 +5,7 @@ from dataclasses import asdict
 from .book import Book
 from .singleton import Singleton
 
+
 class Catalogue(metaclass=Singleton):
     def __init__(self):
         # Map each book's ID to its Book object
@@ -29,7 +30,10 @@ class Catalogue(metaclass=Singleton):
                 nested_dict[author].add(book.id)
 
     def remove_book(self, book_id: int) -> Book:
-        """Removes book from the catalogue. Returns the removed item, if any."""
+        """
+        Removes book from the catalogue. 
+        Returns the removed item, if any.
+        """
         book = self.books.get(book_id)
 
         if book is None:
