@@ -1,5 +1,4 @@
 import hashlib
-from dataclasses import asdict
 
 from fastapi import APIRouter, Depends, status
 
@@ -24,8 +23,9 @@ def get_active_session(account_manager = Depends(get_account_manager)):
 		"name": account.name,
 		"username": account.username,
 		"role": account.get_role(),
-		"cart_items": session.cart.get_items()
+		"cart_items": session.cart.get_number_of_items()
 	}
+
 
 @router.post(
 	"/login",
@@ -43,6 +43,7 @@ def login(request: LoginRequest, account_manager = Depends(get_account_manager))
 			"username": session.account.username
 		}
 	return {"error": "Invaild credentials"}
+
 
 @router.post(
 	"/logout",

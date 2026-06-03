@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from .routers import account, books, stock_manager
+from .routers import account, books, stock_manager, cart
 from .dependencies.catalogue import load_catalogue
 from .dependencies.stock_manager import load_stock_manager
 from .dependencies.account_manager import load_account_manager
@@ -31,6 +31,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 # Prefix "/books" is automatically added to all endpoints
-app.include_router(books.router, prefix="/books")
-app.include_router(stock_manager.router, prefix="/stock")
 app.include_router(account.router, prefix="/account")
+app.include_router(books.router, prefix="/books")
+app.include_router(cart.router, prefix="/cart")
+app.include_router(stock_manager.router, prefix="/stock")
