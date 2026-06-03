@@ -1,10 +1,9 @@
 from pathlib import Path
 
 import pandas as pd
-from fastapi import Request, Depends
+from fastapi import Request
 
 from ..src.stock_manager import StockManager, Catalogue
-from .catalogue import get_catalogue
 
 BOOKS = Path(__file__).parent.parent / "data" / "books.csv"
 STOCK = Path(__file__).parent.parent / "data" / "stock.csv"

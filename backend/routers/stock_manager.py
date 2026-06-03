@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from ..dependencies.account_manager import require_admin
+from ..dependencies.session_manager import require_admin
 from ..dependencies.stock_manager import get_stock_manager
 from ..schemas.stock import StockUpdate
 from ..src.session import Session

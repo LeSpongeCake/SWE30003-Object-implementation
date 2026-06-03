@@ -3,10 +3,12 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from .routers import account, books, stock_manager, cart
-from .dependencies.catalogue import load_catalogue
-from .dependencies.stock_manager import load_stock_manager
 from .dependencies.account_manager import load_account_manager
+from .dependencies.catalogue import load_catalogue
+from .dependencies.session_manager import load_session_manager
+from .dependencies.stock_manager import load_stock_manager
+from .routers import account, books, stock_manager, cart
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,6 +16,7 @@ async def lifespan(app: FastAPI):
     app.state.catalogue = load_catalogue()
     app.state.stock_manager = load_stock_manager(catalogue=app.state.catalogue)
     app.state.account_manager = load_account_manager()
+    app.state.session_manager = load_session_manager()
 
     yield
 

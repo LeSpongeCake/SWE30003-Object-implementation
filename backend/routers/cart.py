@@ -2,12 +2,12 @@ from dataclasses import asdict
 
 from fastapi import APIRouter, Depends
 
-from ..dependencies.account_manager import get_account_manager
 from ..dependencies.catalogue import get_catalogue
+from ..dependencies.session_manager import get_session_manager
 from ..dependencies.stock_manager import get_stock_manager
 from ..schemas.cart import CartItemRequest
-from ..src.account_manager import AccountManager
 from ..src.catalogue import Catalogue
+from ..src.session_manager import SessionManager
 from ..src.stock_manager import StockManager
 
 router = APIRouter(tags=["cart"])
@@ -21,10 +21,10 @@ router = APIRouter(tags=["cart"])
 	"""
 )
 def get_items(
-	account_manager: AccountManager = Depends(get_account_manager),
+	session_manager: SessionManager = Depends(get_session_manager),
 	catalogue: Catalogue = Depends(get_catalogue)
 ):
-	session = account_manager.get_current_session()
+	session = session_manager.get_current_session()
 	cart = session.cart
 	items = cart.get_items()
 
@@ -49,9 +49,9 @@ def get_items(
 )
 def get_quantity(
 	book_id: int,
-	account_manager: AccountManager = Depends(get_account_manager)
+	session_manager: SessionManager = Depends(get_session_manager)
 ):
-	cart = account_manager.get_current_session().cart
+	cart = session_manager.get_current_session().cart
 	return cart.get_item_quantity(book_id)
 
 
@@ -59,8 +59,8 @@ def get_quantity(
 	path="/total",
 	summary="Get cart total"
 )
-def get_total(account_manager: AccountManager = Depends(get_account_manager)):
-	cart = account_manager.get_current_session().cart
+def get_total(session_manager: SessionManager = Depends(get_session_manager)):
+	cart = session_manager.get_current_session().cart
 	return {
 		"total": cart.calculate_totals()
 	}
@@ -76,11 +76,11 @@ def get_total(account_manager: AccountManager = Depends(get_account_manager)):
 )
 def add_item(
 	request: CartItemRequest,
-	account_manager: AccountManager = Depends(get_account_manager),
+	session_manager: SessionManager = Depends(get_session_manager),
 	stock_manager: StockManager = Depends(get_stock_manager)
 ):
 	book_id, quantity = request.book_id, request.quantity
-	cart = account_manager.get_current_session().cart
+	cart = session_manager.get_current_session().cart
 
 	# Check stock first before committing
 	stock = stock_manager.get_stock_by_id(book_id)
@@ -103,9 +103,9 @@ def add_item(
 )
 def remove_item(
 	request: CartItemRequest,
-	account_manager: AccountManager = Depends(get_account_manager),
+	session_manager: SessionManager = Depends(get_session_manager),
 ):
 	book_id, quantity = request.book_id, request.quantity
-	cart = account_manager.get_current_session().cart
+	cart = session_manager.get_current_session().cart
 	cart.remove_item(book_id=book_id, qty=quantity)
 	return cart.get_item_quantity(book_id)

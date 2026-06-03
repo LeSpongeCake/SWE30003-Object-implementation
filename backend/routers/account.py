@@ -3,8 +3,11 @@ import hashlib
 from fastapi import APIRouter, Depends, status
 
 from ..dependencies.account_manager import get_account_manager
+from ..dependencies.session_manager import get_session_manager
 from ..schemas.account import LoginRequest, CreateAccountRequest
 from ..src.account import CustomerAccount
+from ..src.session_manager import SessionManager
+from ..src.session_manager import AccountManager
 
 router = APIRouter(tags=["account"])
 
@@ -14,8 +17,8 @@ router = APIRouter(tags=["account"])
 	summary="Get current active session",
 	description="Returns the session ID and the account associated with the session."
 )
-def get_active_session(account_manager = Depends(get_account_manager)):
-	session = account_manager.get_current_session()
+def get_active_session(session_manager: SessionManager = Depends(get_session_manager)):
+	session = session_manager.get_current_session()
 	account = session.get_account()
 	return {
 		"session_id": session.session_id,
@@ -32,9 +35,17 @@ def get_active_session(account_manager = Depends(get_account_manager)):
 	summary="Log in",
 	description="Attempt a login with the provided credentials."
 )
-def login(request: LoginRequest, account_manager = Depends(get_account_manager)):
+def login(
+	request: LoginRequest, 
+	session_manager: SessionManager = Depends(get_session_manager),
+	account_manager: AccountManager = Depends(get_account_manager)
+):
 	username, password = request.username, request.password
-	session = account_manager.login(username=username, password=password)
+	session = session_manager.login(
+		username=username, 
+		password=password,
+		account_manager=account_manager
+	)
 	if session is not None:
 		return {
 			"session_id": session.session_id,
@@ -50,9 +61,9 @@ def login(request: LoginRequest, account_manager = Depends(get_account_manager))
 	summary="Log out",
 	description="Log out / Switch to a guest session."
 )
-def logout(account_manager = Depends(get_account_manager)):
-	account_manager.logout()
-	session = account_manager.get_current_session()
+def logout(session_manager: SessionManager = Depends(get_session_manager)):
+	session_manager.logout()
+	session = session_manager.get_current_session()
 	return {
 		"session_id": session.session_id
 	}
