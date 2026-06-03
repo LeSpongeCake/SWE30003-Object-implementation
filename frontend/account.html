@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="account">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Account</p>
+      <strong>User details, quick actions, and purchase history.</strong>
+    </div>
+    <div class="topbar-meta">
+      <span class="status-pill" data-session-label>Loading session</span>
+      <span class="status-pill">Cart: <strong data-cart-count>0</strong></span>
+    </div>
+  </header>
+  <nav class="nav-shell" aria-label="Main navigation">
+    <a class="nav-link" data-page-link="catalog" href="index.html">Catalog</a>
+    <a class="nav-link" data-page-link="cart" href="cart.html">Cart</a>
+    <a class="nav-link" data-page-link="checkout" href="checkout.html">Payment</a>
+    <a class="nav-link" data-page-link="purchases" href="purchases.html">Purchases</a>
+    <a class="nav-link" data-page-link="tracking" href="tracking.html">Tracking</a>
+    <a class="nav-link active" data-page-link="account" href="account.html">Account</a>
+    <a class="nav-link" data-page-link="guest" href="guest.html">Guest</a>
+    <a class="nav-link" data-page-link="admin" href="admin.html">Admin</a>
+    <a class="nav-link nav-cta" data-page-link="login" href="login.html">Login / Create</a>
+  </nav>
+  <main class="page-shell account-grid">
+    <section id="accountProfile" class="panel-card"></section>
+    <section id="accountActivity" class="panel-card"></section>
+    <section class="content-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Purchases</p>
+          <h2>Recent orders</h2>
+        </div>
+        <button id="accountSignOut" class="button-link secondary" type="button">Sign out to guest</button>
+      </div>
+      <div id="accountOrders" class="list-card"></div>
+    </section>
+  </main>
+  <script src="shared.js"></script>
+  <script src="account.js"></script>
+</body>
+</html>
