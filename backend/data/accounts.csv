@@ -1,0 +1,5 @@
+id,username,password,role
+1,realcustomer123@yahoo.com,password,customer
+2,ilovebooks69@gmail.com,123456789,customer
+3,swinburne@outlook.com,qwerty,customer
+4,admin@books.com,admin,admin
