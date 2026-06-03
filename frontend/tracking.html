@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="tracking">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Tracking</p>
+      <strong>Dummy delivery updates from processing to delivered.</strong>
+    </div>
+    <div class="topbar-meta">
+      <span class="status-pill" data-session-label>Loading session</span>
+      <span class="status-pill">Cart: <strong data-cart-count>0</strong></span>
+    </div>
+  </header>
+  <nav class="nav-shell" aria-label="Main navigation">
+    <a class="nav-link" data-page-link="catalog" href="index.html">Catalog</a>
+    <a class="nav-link" data-page-link="cart" href="cart.html">Cart</a>
+    <a class="nav-link" data-page-link="checkout" href="checkout.html">Payment</a>
+    <a class="nav-link" data-page-link="purchases" href="purchases.html">Purchases</a>
+    <a class="nav-link active" data-page-link="tracking" href="tracking.html">Tracking</a>
+    <a class="nav-link" data-page-link="account" href="account.html">Account</a>
+    <a class="nav-link" data-page-link="guest" href="guest.html">Guest</a>
+    <a class="nav-link" data-page-link="admin" href="admin.html">Admin</a>
+    <a class="nav-link nav-cta" data-page-link="login" href="login.html">Login / Create</a>
+  </nav>
+  <main class="page-shell tracking-grid">
+    <section class="content-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Delivery status</p>
+          <h2>Track your order</h2>
+        </div>
+      </div>
+      <p id="trackingMessage" class="data-message">Open a purchase to start tracking.</p>
+      <div id="trackingCard" class="list-card"></div>
+    </section>
+  </main>
+  <script src="shared.js"></script>
+  <script src="tracking.js"></script>
+</body>
+</html>
