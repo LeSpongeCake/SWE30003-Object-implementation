@@ -32,18 +32,29 @@ class OrderManager(metaclass=Singleton):
             return 1
         return max(self.orders.keys()) + 1 
     
-    def update_order_status(self, order_id: int, new_status: str):
+    def pay_order(self, order_id: int) -> Order:
         order = self.get_order_by_id(order_id)
-        if order:
-            order.set_status(new_status)
 
-    def pay_order(self, order_id: int):
-        self.update_order_status(order_id, "PAID")
-        return self.get_order_by_id(order_id)
+        if order is None:
+            raise ValueError("Order not found.")
 
-    def cancel_order(self, order_id: int):
-        self.update_order_status(order_id, "CANCELLED")
-        return self.get_order_by_id(order_id)
+        if order.status != "PENDING":
+            raise ValueError("Only pending orders can be paid.")
+
+        order.set_status("PAID")
+        return order
+    
+    def cancel_order(self, order_id: int) -> Order:
+        order = self.get_order_by_id(order_id)
+
+        if order is None:
+            raise ValueError("Order not found.")
+
+        if order.status == "CANCELLED":
+            raise ValueError("Order is already cancelled.")
+
+        order.set_status("CANCELLED")
+        return order
 
     def export_csv(self, path: str):
         with open(path, "w", newline="", encoding="utf-8") as file:

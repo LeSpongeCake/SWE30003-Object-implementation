@@ -8,7 +8,8 @@ from .dependencies.catalogue import load_catalogue
 from .dependencies.session_manager import load_session_manager
 from .dependencies.stock_manager import load_stock_manager
 from .dependencies.order_manager import load_order_manager
-from .routers import account, books, stock_manager, cart, orders
+from .dependencies.delivery_manager import load_delivery_manager
+from .routers import account, books, stock_manager, cart, orders, delivery
 
 
 @asynccontextmanager
@@ -19,6 +20,7 @@ async def lifespan(app: FastAPI):
     app.state.account_manager = load_account_manager()
     app.state.session_manager = load_session_manager()
     app.state.order_manager = load_order_manager()
+    app.state.delivery_manager = load_delivery_manager()
 
     yield
 
@@ -35,6 +37,9 @@ async def lifespan(app: FastAPI):
     app.state.order_manager.export_csv(
         path=Path(__file__).parent / "data" / "orders.csv"
     )
+    app.state.delivery_manager.export_csv(
+        path=Path(__file__).parent / "data" / "deliveries.csv"
+    )
 
 app = FastAPI(lifespan=lifespan)
 
@@ -44,3 +49,4 @@ app.include_router(books.router, prefix="/books")
 app.include_router(cart.router, prefix="/cart")
 app.include_router(stock_manager.router, prefix="/stock")
 app.include_router(orders.router, prefix="/orders")
+app.include_router(delivery.router, prefix="/delivery")
