@@ -39,12 +39,13 @@ class OrderManager(metaclass=Singleton):
 
     def pay_order(self, order_id: int):
         self.update_order_status(order_id, "PAID")
+        return self.get_order_by_id(order_id)
 
     def cancel_order(self, order_id: int):
         self.update_order_status(order_id, "CANCELLED")
+        return self.get_order_by_id(order_id)
 
     def export_csv(self, path: str):
-        """Export orders into CSV."""
         with open(path, "w", newline="", encoding="utf-8") as file:
             writer = csv.DictWriter(
                 file,
@@ -71,7 +72,6 @@ class OrderManager(metaclass=Singleton):
                 })
 
     def load_csv(self, path: str):
-        """Load orders from CSV."""
         self.orders.clear()
         
         try:

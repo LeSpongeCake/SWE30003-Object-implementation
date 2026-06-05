@@ -1,7 +1,4 @@
 from pydantic import BaseModel
-from .catalogue import Catalogue
-from .shopping_cart import ShoppingCart
-from .account import Account
 
 class Order(BaseModel):
     order_id: int
