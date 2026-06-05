@@ -2,6 +2,9 @@ import csv
 import json
 
 from .order import Order
+from .payment import ShippingMethod
+from .payment_manager import PaymentManager
+from .payment_method import PaymentMethod
 from .singleton import Singleton
 
 class OrderManager(metaclass=Singleton):
@@ -32,17 +35,27 @@ class OrderManager(metaclass=Singleton):
             return 1
         return max(self.orders.keys()) + 1 
     
-    def pay_order(self, order_id: int) -> Order:
+    def pay_order(
+            self, 
+            order_id: int,
+            full_name: str,
+            email: str,
+            address: str,
+            shipping_method: str,
+            payment_method: str,
+            payment_manager: PaymentManager,
+        ) -> str:
         order = self.get_order_by_id(order_id)
-
         if order is None:
             raise ValueError("Order not found.")
 
         if order.status != "PENDING":
             raise ValueError("Only pending orders can be paid.")
+        
+        msg = payment_manager.pay(order_id, full_name, email, address, shipping_method, payment_method)
 
         order.set_status("PAID")
-        return order
+        return msg
     
     def cancel_order(self, order_id: int) -> Order:
         order = self.get_order_by_id(order_id)
@@ -52,6 +65,8 @@ class OrderManager(metaclass=Singleton):
 
         if order.status == "CANCELLED":
             raise ValueError("Order is already cancelled.")
+        elif order.status == "PAID":
+            raise ValueError("Unable to cancel a paid order.")
 
         order.set_status("CANCELLED")
         return order

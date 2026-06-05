@@ -15,6 +15,15 @@ class AccountManager(metaclass=Singleton):
         self.accounts[account.id] = account
         self.accounts_by_username[account.username] = account
 
+    def get_account_by_id(self, account_id: int) -> Account | None:
+        return self.accounts.get(account_id)
+    
+    def get_account_by_username(self, username: str) -> Account | None:
+        return self.accounts_by_username.get(username)
+    
+    def get_accounts(self) -> dict[int, Account]:
+        return self.accounts
+    
     def export_csv(self, path: str):
         """Export the account database to a CSV file."""
         with open(path, "w", newline="", encoding="utf-8") as file:
@@ -32,15 +41,6 @@ class AccountManager(metaclass=Singleton):
                     "password": account.password,
                     "role": "customer" if isinstance(account, CustomerAccount) else "admin"
                 })
-
-    def get_account_by_id(self, account_id: int) -> Account | None:
-        return self.accounts.get(account_id)
-    
-    def get_account_by_username(self, username: str) -> Account | None:
-        return self.accounts_by_username.get(username)
-    
-    def get_accounts(self) -> dict[int, Account]:
-        return self.accounts
     
     def load_csv(self, path: str):
         df = pd.read_csv(path)

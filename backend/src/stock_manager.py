@@ -1,6 +1,6 @@
 import csv
+import pandas as pd
 from collections import defaultdict
-from dataclasses import asdict
 
 from .singleton import Singleton
 from .catalogue import Catalogue
@@ -55,6 +55,19 @@ class StockManager(metaclass=Singleton):
             raise ValueError("Quantity exceeds available stock.")
         self.stock[book_id] = self.stock.get(book_id) - qty
         return True
+    
+    def load_csv(self, path: str):
+        df = pd.read_csv(path)
+        stocks = [{
+            "id": int(row["id"]),
+            "qty": int(row["quantity"])
+        } for _, row in df.iterrows()]
+
+        for stock in stocks:
+            self.set_stock(
+                book_id=stock["id"],
+                qty=stock["qty"]
+            )
     
     def export_csv(self, path: str):
         """Export the inventory to a CSV file."""

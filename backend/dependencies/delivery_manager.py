@@ -3,7 +3,7 @@ from fastapi import Request
 
 from ..src.delivery_manager import DeliveryManager
 
-DELIVERIES = Path(__file__).parent.parent / "data" / "delivery.csv"
+DELIVERIES = Path(__file__).parent.parent / "data" / "deliveries.csv"
 
 
 def load_delivery_manager() -> DeliveryManager:

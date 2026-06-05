@@ -5,12 +5,15 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from ..dependencies.catalogue import get_catalogue
 from ..dependencies.order_manager import get_order_manager
+from ..dependencies.payment_manager import get_payment_manager
 from ..dependencies.session_manager import get_session_manager
 from ..dependencies.delivery_manager import get_delivery_manager
 from ..schemas.order import OrderResponse
+from ..schemas.payment import PaymentRequest, PaymentResponse
 from ..src.catalogue import Catalogue
 from ..src.order import Order
 from ..src.order_manager import OrderManager
+from ..src.payment_manager import PaymentManager
 from ..src.session_manager import SessionManager
 from ..src.delivery_manager import DeliveryManager
 
@@ -96,23 +99,36 @@ def get_order_by_id(
 @router.put(
     path="/{order_id}/pay",
     summary="Pay for an order and generate a delivery",
-    response_model=OrderResponse
+    description="""
+    Update the order status to 'Paid', create a new payment from the order and return a message indicating if the payment was successful.
+    """
 )
 def pay_order(
+    request: PaymentRequest,
     order_id: int,
     order_manager: OrderManager = Depends(get_order_manager),
+    payment_manager: PaymentManager = Depends(get_payment_manager),
     delivery_manager: DeliveryManager = Depends(get_delivery_manager)
 ):
     try:
-        order = order_manager.pay_order(order_id)
+        order = order_manager.get_order_by_id(order_id)
+        msg = order_manager.pay_order(
+            order_id, 
+            request.full_name,
+            request.email,
+            request.address,
+            request.shipping_method,
+            request.payment_method,
+            payment_manager=payment_manager
+        )
         delivery = delivery_manager.create_delivery_for_order(order)
 
         if order is None:
             raise HTTPException(status_code=404, detail="Order not found.")
 
-        order_manager.export_csv(str(ORDERS))
-        delivery_manager.export_csv(str(DELIVERIES))
-        return order
+        return {
+            "message": msg
+        }
 
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))

@@ -11,17 +11,7 @@ STOCK = Path(__file__).parent.parent / "data" / "stock.csv"
 
 def load_stock_manager(catalogue: Catalogue):
     stock_manager = StockManager(catalogue)
-    df = pd.read_csv(STOCK)
-    stocks = [{
-        "id": int(row["id"]),
-        "qty": int(row["quantity"])
-    } for _, row in df.iterrows()]
-
-    for stock in stocks:
-        stock_manager.set_stock(
-            book_id=stock["id"],
-            qty=stock["qty"]
-        )
+    stock_manager.load_csv(path=STOCK)
     return stock_manager
 
 
