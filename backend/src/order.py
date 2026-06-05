@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from dataclasses import dataclass
 
-class Order(BaseModel):
+@dataclass
+class Order():
     order_id: int
     account_id: int
     items: dict[int, int]

@@ -1,6 +1,8 @@
 import csv
+import pandas as pd
 from collections import defaultdict
 from dataclasses import asdict
+from datetime import datetime
 
 from .book import Book
 from .singleton import Singleton
@@ -102,6 +104,25 @@ class Catalogue(metaclass=Singleton):
 
         # Pagination
         return books[offset:offset + limit]
+    
+    def load_csv(self, path: str):
+        df = pd.read_csv(path)
+        books = [
+            Book(
+                id=row["id"],
+                title=row["title"],
+                authors=row["authors"].split(","),
+                genre=row["genre"],
+                isbn=str(row["isbn"]),
+                num_pages=row["num_pages"],
+                publisher=row["publisher"],
+                publication_date=datetime.strptime(row["publication_date"], "%Y-%m-%d").date(),
+                price=row["price"],
+            )
+            for _, row in df.iterrows()
+        ]
+        for book in books:
+            self.books[book.id] = book
     
     def export_csv(self, path: str):
         """Export the catalogue to a CSV file."""

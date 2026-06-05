@@ -1,5 +1,4 @@
 from .catalogue import Catalogue
-from .book import Book
 
 
 class ShoppingCart:
@@ -38,3 +37,6 @@ class ShoppingCart:
             if book:
                 total += book.price * qty
         return total
+    
+    def clear(self):
+        self.cart = {}

@@ -1,6 +1,7 @@
 import csv
+import pandas as pd
 
-from .account import Account, CustomerAccount
+from .account import Account, CustomerAccount, AdminAccount
 from .singleton import Singleton
 
 
@@ -40,6 +41,29 @@ class AccountManager(metaclass=Singleton):
     
     def get_accounts(self) -> dict[int, Account]:
         return self.accounts
+    
+    def load_csv(self, path: str):
+        df = pd.read_csv(path)
+        accounts = [
+            {
+                "id": int(row["id"]),
+                "name": row["name"],
+                "username": row["username"],
+                "password": row["password"],
+                "role": row["role"],
+            }
+            for _, row in df.iterrows()
+        ]
+		
+        for account in accounts:
+            if account["role"] == "customer":
+                cls = CustomerAccount
+            elif account["role"] == "admin":
+                cls = AdminAccount
+            else:
+                raise ValueError(f"Unknown role: {account['role']}")
+            new_account = cls(account["id"], account["name"], account["username"], account["password"])
+            self.add_account(new_account)
 
     def remove_account(self, account_id: int):
         self.accounts.pop(account_id, None)

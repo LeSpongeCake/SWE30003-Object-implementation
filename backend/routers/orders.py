@@ -23,6 +23,9 @@ router = APIRouter(tags=["orders"])
 @router.post(
     path="/",
     summary="Create the order from the current shopping cart",
+    description="""
+    Create an order from the current shopping cart if it is not empty. The cart is cleared if the creation was successful.
+    """,
     response_model=OrderResponse
 )
 def create_order(
@@ -45,7 +48,7 @@ def create_order(
     )
 
     order_manager.add_order(order)
-    order_manager.export_csv(str(ORDERS))
+    cart.clear()
 
     return order
 
@@ -70,7 +73,7 @@ def get_customer_orders(
     account_id: int,
     order_manager: OrderManager = Depends(get_order_manager)
 ):
-    return order_manager.get_orders_by_account(account_id)
+    return order_manager.get_orders_by_account_id(account_id)
 
 
 @router.get(

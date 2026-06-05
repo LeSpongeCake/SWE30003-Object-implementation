@@ -11,27 +11,7 @@ ACCOUNTS = Path(__file__).parent.parent / "data" / "accounts.csv"
 
 def load_account_manager():
 	account_manager = AccountManager()
-	df = pd.read_csv(ACCOUNTS)
-	accounts = [
-	{
-		"id": int(row["id"]),
-		"name": row["name"],
-		"username": row["username"],
-		"password": row["password"],
-		"role": row["role"],
-	}
-	for _, row in df.iterrows()
-	]
-		
-	for account in accounts:
-		if account["role"] == "customer":
-			cls = CustomerAccount
-		elif account["role"] == "admin":
-			cls = AdminAccount
-		else:
-			raise ValueError(f"Unknown role: {account['role']}")
-		new_account = cls(account["id"], account["name"], account["username"], account["password"])
-		account_manager.add_account(new_account)
+	account_manager.load_csv(path=ACCOUNTS)
 	return account_manager
 
 

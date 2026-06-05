@@ -12,23 +12,7 @@ BOOKS = Path(__file__).parent.parent / "data" / "books.csv"
 
 def load_catalogue():
     catalogue = Catalogue()
-    df = pd.read_csv(BOOKS)
-    books = [
-        Book(
-            id=row["id"],
-            title=row["title"],
-            authors=row["authors"].split(","),
-            genre=row["genre"],
-            isbn=str(row["isbn"]),
-            num_pages=row["num_pages"],
-            publisher=row["publisher"],
-            publication_date=datetime.strptime(row["publication_date"], "%Y-%m-%d").date(),
-            price=row["price"],
-        )
-        for _, row in df.iterrows()
-    ]
-    for book in books:
-        catalogue.add_book(book)
+    catalogue.load_csv(path=BOOKS)
     return catalogue
 
 
