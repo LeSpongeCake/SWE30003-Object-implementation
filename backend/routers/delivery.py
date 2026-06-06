@@ -19,7 +19,7 @@ router = APIRouter(tags=["delivery"])
 def get_all_deliveries(
     delivery_manager: DeliveryManager = Depends(get_delivery_manager)
 ):
-    return list(delivery_manager.get_deliveries().values())
+    return list(delivery_manager.get_deliveries())
 
 
 @router.get(
@@ -73,9 +73,7 @@ def dispatch_delivery(
     if delivery is None:
         raise HTTPException(status_code=404, detail="Delivery not found.")
 
-    delivery.on_delivering()
-    delivery_manager.export_csv(str(DELIVERIES_CSV))
-
+    delivery_manager.on_delivering(delivery_id)
     return delivery
 
 
@@ -93,7 +91,5 @@ def complete_delivery(
     if delivery is None:
         raise HTTPException(status_code=404, detail="Delivery not found.")
 
-    delivery.on_arrived()
-    delivery_manager.export_csv(str(DELIVERIES_CSV))
-
+    delivery_manager.on_arrived(delivery_id)
     return delivery

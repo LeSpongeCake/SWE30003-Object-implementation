@@ -1,80 +1,47 @@
-import csv
-
 from .delivery import Delivery
+from .repository import Repository
 from .singleton import Singleton
 
 
 class DeliveryManager(metaclass=Singleton):
-    def __init__(self):
-        self.deliveries: dict[int, Delivery] = {}
 
-    def generate_delivery_id(self) -> int:
-        if not self.deliveries:
-            return 1
-        return max(self.deliveries.keys()) + 1
+    def __init__(self, repo: Repository):
+        self.repo = repo
 
-    def create_delivery_for_order(self, order):
+    def _generate_id(self) -> int:
+        all_ids = [d.delivery_id for d in self.repo.get_all()]
+        return max(all_ids, default=0) + 1
+
+    def create_delivery_for_order(self, order) -> Delivery:
         delivery = Delivery(
-            delivery_id=self.generate_delivery_id(),
+            delivery_id=self._generate_id(),
             order_id=order.order_id,
             account_id=order.account_id,
-            status="PREPARING"
+            status="PREPARING",
         )
-        self.deliveries[delivery.delivery_id] = delivery
+        self.repo.save(delivery)
         return delivery
 
-    def get_delivery_by_id(self, delivery_id: int):
-        return self.deliveries.get(delivery_id)
+    def get_delivery_by_id(self, delivery_id: int) -> Delivery | None:
+        return self.repo.get_by_id(delivery_id)
 
-    def get_delivery_by_order_id(self, order_id: int):
-        for delivery in self.deliveries.values():
-            if delivery.order_id == order_id:
-                return delivery
-        return None
+    def get_delivery_by_order_id(self, order_id: int) -> Delivery | None:
+        return next(
+            (d for d in self.repo.get_all() if d.order_id == order_id),
+            None
+        )
 
-    def get_deliveries(self):
-        return self.deliveries
-    
+    def get_deliveries(self) -> list[Delivery]:
+        return self.repo.get_all()
+
     def on_delivering(self, delivery_id: int):
-        delivery = self.get_delivery_by_id(delivery_id)
+        delivery = self.repo.get_by_id(delivery_id)
         if delivery:
             delivery.set_status("DELIVERING")
+            self.repo.save(delivery)
 
     def on_arrived(self, delivery_id: int):
-        delivery = self.get_delivery_by_id(delivery_id)
+        delivery = self.repo.get_by_id(delivery_id)
         if delivery:
             delivery.set_status("ARRIVED")
-
-    def export_csv(self, path: str):
-        with open(path, "w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(
-                file,
-                fieldnames=["delivery_id", "order_id", "account_id", "status"]
-            )
-            writer.writeheader()
-
-            for delivery in self.deliveries.values():
-                writer.writerow({
-                    "delivery_id": delivery.delivery_id,
-                    "order_id": delivery.order_id,
-                    "account_id": delivery.account_id,
-                    "status": delivery.status
-                })
-
-    def load_csv(self, path: str):
-        self.deliveries.clear()
-
-        try:
-            with open(path, "r", newline="", encoding="utf-8") as file:
-                reader = csv.DictReader(file)
-
-                for row in reader:
-                    delivery = Delivery(
-                        delivery_id=int(row["delivery_id"]),
-                        order_id=int(row["order_id"]),
-                        account_id=int(row["account_id"]),
-                        status=row["status"]
-                    )
-                    self.deliveries[delivery.delivery_id] = delivery
-        except FileNotFoundError:
-            self.export_csv(path)
+            self.repo.save(delivery)

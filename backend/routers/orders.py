@@ -64,7 +64,7 @@ def create_order(
 def get_all_orders(
     order_manager: OrderManager = Depends(get_order_manager)
 ):
-    return list(order_manager.get_orders().values())
+    return list(order_manager.get_orders())
 
 
 @router.get(

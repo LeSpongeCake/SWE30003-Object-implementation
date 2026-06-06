@@ -25,7 +25,7 @@ def get_active_session(session_manager: SessionManager = Depends(get_session_man
 		"account_id": account.id,
 		"name": account.name,
 		"username": account.username,
-		"role": account.get_role(),
+		"role": account.role,
 		"cart_items": session.cart.get_number_of_items()
 	}
 
@@ -79,7 +79,7 @@ def create_account(
 	account_manager = Depends(get_account_manager)
 ):
 	new_id = max((
-		id for id in account_manager.get_accounts()), 
+		account.id for account in account_manager.get_accounts()), 
 		default=0
 	) + 1
 	request.password = hashlib.sha256(request.password.encode()).hexdigest()

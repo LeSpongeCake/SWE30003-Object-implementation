@@ -1,85 +1,47 @@
-import csv
-import pandas as pd
-from collections import defaultdict
-
-from .singleton import Singleton
 from .catalogue import Catalogue
+from .singleton import Singleton
+from .stock_repository import StockRepository
 
 
 class StockManager(metaclass=Singleton):
-    def __init__(self, catalogue: Catalogue):
+
+    def __init__(self, repo: StockRepository, catalogue: Catalogue):
+        self.repo = repo
         self.catalogue = catalogue
-        self.stock: dict[int, int] = defaultdict(int)
 
-    def get_stock(self):
-        return dict(self.stock)
-    
+    def get_stock(self) -> dict[int, int]:
+        return self.repo.get_all()
+
     def get_stock_by_id(self, book_id: int) -> int:
-        stock = self.stock.get(book_id)
-        if stock is None:
-            return -1
-        return stock
+        qty = self.repo.get(book_id)
+        return qty if qty is not None else -1
 
-    def add_stock(self, book_id: int, qty: int):
-        """Adds qty to the stock for the given book_id."""
+    def add_stock(self, book_id: int, qty: int) -> bool:
         if not self._book_exists(book_id):
             return False
         if qty < 0:
             raise ValueError("Quantity must be greater than 0.")
-        self.stock[book_id] = self.stock.get(book_id, 0) + qty
+        self.repo.set(book_id, (self.repo.get(book_id) or 0) + qty)
         return True
 
-    def set_stock(self, book_id: int, qty: int):
-        """
-        Sets the stock for the given book_id book_id to qty.
-        Returns True if operation was successful.
-        """
+    def set_stock(self, book_id: int, qty: int) -> bool:
         if not self._book_exists(book_id):
             return False
         if qty < 0:
             raise ValueError("Quantity must be greater than 0.")
-        self.stock[book_id] = qty
+        self.repo.set(book_id, qty)
         return True
 
-    def remove_stock(self, book_id: int, qty: int):
-        """
-        Removes a qty of stock for the given book_id.
-        Raises an error if the quantity exceeds available stock.
-        Returns True if operation was successful.
-        """
+    def remove_stock(self, book_id: int, qty: int) -> bool:
         if not self._book_exists(book_id):
             return False
         if qty < 0:
             raise ValueError("Quantity must be greater than 0.")
-        elif qty > self.stock.get(book_id):
+        current = self.repo.get(book_id) or 0
+        if qty > current:
             raise ValueError("Quantity exceeds available stock.")
-        self.stock[book_id] = self.stock.get(book_id) - qty
+        self.repo.set(book_id, current - qty)
         return True
-    
-    def load_csv(self, path: str):
-        df = pd.read_csv(path)
-        stocks = [{
-            "id": int(row["id"]),
-            "qty": int(row["quantity"])
-        } for _, row in df.iterrows()]
-
-        for stock in stocks:
-            self.set_stock(
-                book_id=stock["id"],
-                qty=stock["qty"]
-            )
-    
-    def export_csv(self, path: str):
-        """Export the inventory to a CSV file."""
-        with open(path, "w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(file, fieldnames=["id", "quantity"])
-            writer.writeheader()
-
-            for book_id, qty in self.stock.items():
-                writer.writerow({
-                    "id": book_id,
-                    "quantity": qty
-                })
 
     def _book_exists(self, book_id: int) -> bool:
-        return book_id in self.catalogue.books
+        return self.catalogue.get_book_by_id(book_id) is not None

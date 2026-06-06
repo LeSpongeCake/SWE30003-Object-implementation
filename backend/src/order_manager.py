@@ -1,122 +1,65 @@
-import csv
-import json
-
 from .order import Order
-from .payment import ShippingMethod
 from .payment_manager import PaymentManager
-from .payment_method import PaymentMethod
+from .repository import Repository
 from .singleton import Singleton
 
+
 class OrderManager(metaclass=Singleton):
-    def __init__(self):
-        self.orders: dict[int, Order] = {}
+
+    def __init__(self, repo: Repository):
+        self.repo = repo
 
     def add_order(self, order: Order):
-        self.orders[order.order_id] = order
+        self.repo.save(order)
 
     def remove_order(self, order_id: int):
-        self.orders.pop(order_id, None)
+        self.repo.delete(order_id)
 
     def get_order_by_id(self, order_id: int) -> Order | None:
-        return self.orders.get(order_id)
+        return self.repo.get_by_id(order_id)
 
-    def get_orders(self) -> dict[int, Order]:
-        return self.orders
+    def get_orders(self) -> list[Order]:
+        return self.repo.get_all()
 
     def get_orders_by_account_id(self, account_id: int) -> list[Order]:
-        return [
-            order 
-            for order in self.orders.values()
-            if order.account_id == account_id
-        ]
+        return [o for o in self.repo.get_all() if o.account_id == account_id]
 
     def generate_order_id(self) -> int:
-        if not self.orders:
-            return 1
-        return max(self.orders.keys()) + 1 
-    
+        all_ids = [o.order_id for o in self.repo.get_all()]
+        return max(all_ids, default=0) + 1
+
     def pay_order(
-            self, 
-            order_id: int,
-            full_name: str,
-            email: str,
-            address: str,
-            shipping_method: str,
-            payment_method: str,
-            payment_manager: PaymentManager,
-        ) -> str:
-        order = self.get_order_by_id(order_id)
+        self,
+        order_id: int,
+        full_name: str,
+        email: str,
+        address: str,
+        shipping_method: str,
+        payment_method: str,
+        payment_manager: PaymentManager,
+    ) -> str:
+        order = self.repo.get_by_id(order_id)
         if order is None:
             raise ValueError("Order not found.")
-
         if order.status != "PENDING":
             raise ValueError("Only pending orders can be paid.")
-        
-        msg = payment_manager.pay(order_id, full_name, email, address, shipping_method, payment_method)
 
+        msg = payment_manager.pay(
+            order_id, full_name, email, address, shipping_method, payment_method
+        )
         order.set_status("PAID")
+        self.repo.save(order)
         return msg
-    
-    def cancel_order(self, order_id: int) -> Order:
-        order = self.get_order_by_id(order_id)
 
+    def cancel_order(self, order_id: int) -> Order:
+        order = self.repo.get_by_id(order_id)
         if order is None:
             raise ValueError("Order not found.")
-
         if order.status == "CANCELLED":
             raise ValueError("Order is already cancelled.")
-        elif order.status == "PAID":
+        if order.status == "PAID":
             raise ValueError("Unable to cancel a paid order.")
 
         order.set_status("CANCELLED")
+        self.repo.save(order)
         return order
-
-    def export_csv(self, path: str):
-        with open(path, "w", newline="", encoding="utf-8") as file:
-            writer = csv.DictWriter(
-                file,
-                fieldnames=[
-                    "order_id",
-                    "account_id",
-                    "items",
-                    "total_price",
-                    "status"
-                ]
-            )
-            writer.writeheader()
-
-            for order in self.orders.values():
-                writer.writerow({
-                    "order_id": order.order_id,
-                    "account_id": order.account_id,
-
-                    # Convert items dictionary into JSON string for CSV storage
-                    "items": json.dumps(order.items),
-
-                    "total_price": order.total_price,
-                    "status": order.status
-                })
-
-    def load_csv(self, path: str):
-        self.orders.clear()
-        
-        try:
-            with open(path, "r", newline="", encoding="utf-8") as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    order = Order(
-                        order_id=int(row["order_id"]),
-                        account_id=int(row["account_id"]),
-
-                        # Convert JSON string back into dictionary
-                        items={
-                            int(k): int(v)
-                            for k, v in json.loads(row["items"]).items()
-                        },
-
-                        total_price=float(row["total_price"]),
-                        status=row["status"]
-                    )
-                    self.add_order(order)
-        except FileNotFoundError:
-            self.export_csv(path)

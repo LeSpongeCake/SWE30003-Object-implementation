@@ -4,14 +4,13 @@ import pandas as pd
 from fastapi import Request
 
 from ..src.stock_manager import StockManager, Catalogue
+from ..src.stock_repository import StockRepository
 
-BOOKS = Path(__file__).parent.parent / "data" / "books.csv"
 STOCK = Path(__file__).parent.parent / "data" / "stock.csv"
 
 
 def load_stock_manager(catalogue: Catalogue):
-    stock_manager = StockManager(catalogue)
-    stock_manager.load_csv(path=STOCK)
+    stock_manager = StockManager(StockRepository(STOCK), catalogue)
     return stock_manager
 
 

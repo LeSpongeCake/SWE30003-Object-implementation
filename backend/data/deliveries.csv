@@ -1,2 +1,3 @@
 delivery_id,order_id,account_id,status
 1,4,2,PREPARING
+2,5,0,DELIVERING

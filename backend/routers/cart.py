@@ -44,6 +44,20 @@ def get_items(
 
 
 @router.get(
+	path="/total",
+	summary="Get cart total",
+)
+def get_total(
+	session_manager: SessionManager = Depends(get_session_manager),
+	catalogue: Catalogue = Depends(get_catalogue)
+):
+	cart = session_manager.get_current_session().cart
+	return {
+		"total": cart.calculate_totals(catalogue)
+	}
+
+
+@router.get(
 	path="/{book_id}",
 	summary="Get the quantity the given item in the cart"
 )
@@ -53,17 +67,6 @@ def get_quantity(
 ):
 	cart = session_manager.get_current_session().cart
 	return cart.get_item_quantity(book_id)
-
-
-@router.get(
-	path="/total",
-	summary="Get cart total"
-)
-def get_total(session_manager: SessionManager = Depends(get_session_manager)):
-	cart = session_manager.get_current_session().cart
-	return {
-		"total": cart.calculate_totals()
-	}
 
 
 @router.post(

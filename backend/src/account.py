@@ -1,18 +1,12 @@
 import hashlib
-from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
 
-@dataclass
-class Account:
+class Account(ABC):
+    _registry: dict[str, type] = {}
 
-    def __init__(
-        self,
-        account_id: int,
-        name: str,
-        username: str,
-        password: str,
-    ):
-        self.id = account_id
+    def __init__(self, id: int, name: str, username: str, password: str):
+        self.id = id
         self.name = name
         self.username = username
         self.password = password
@@ -23,25 +17,61 @@ class Account:
             == self.password
         )
 
-    def get_role(self):
-        return "Account"
-    
+    @classmethod
+    def register(cls, role: str):
+        def decorator(subclass):
+            Account._registry[role] = subclass
+            return subclass
+        return decorator
 
-class AdminAccount(Account):
-    def get_role(self):
-        return "Admin"
-    
+    @property
+    @abstractmethod
+    def role(self) -> str:
+        pass
 
+    @property
+    def is_persistent(self) -> bool:
+        return True
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "username": self.username,
+            "password": self.password,
+            "role": self.role,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Account":
+        subclass = cls._registry.get(data["role"])
+        if subclass is None:
+            raise ValueError(f"Unknown role: {data['role']}")
+        return subclass(int(data["id"]), data["name"], data["username"], data["password"])
+
+
+@Account.register("customer")
 class CustomerAccount(Account):
+    @property
+    def role(self) -> str:
+        return "customer"
 
-    def get_role(self):
-        return "Customer"
+
+@Account.register("admin")
+class AdminAccount(Account):
+    @property
+    def role(self) -> str:
+        return "admin"
     
 
 class GuestAccount(Account):
-
     def __init__(self):
         super().__init__(0, "Guest", "", "")
 
-    def get_role(self):
-        return "Guest"
+    @property
+    def role(self) -> str:
+        return "guest"
+
+    @property
+    def is_persistent(self) -> bool:
+        return False

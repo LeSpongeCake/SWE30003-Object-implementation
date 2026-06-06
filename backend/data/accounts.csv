@@ -3,3 +3,4 @@ id,name,username,password,role
 2,Book Reader,ilovebooks69@gmail.com,15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225,customer
 3,Razorback,swinburne@outlook.com,65e84be33532fb784c48129675f9eff3a682b27168c0ea744b2cf58ee02337c5,customer
 4,Admin,admin@books.com,8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918,admin
+5,Snoopy,snoopy@home.com,2413fb3709b05939f04cf2e92f7d0897fc2596f9ad0b8a9ea855c7bfebaae892,customer
