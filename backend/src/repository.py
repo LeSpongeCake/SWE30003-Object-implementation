@@ -1,4 +1,3 @@
-# base_csv_repository.py
 import csv
 from abc import ABC, abstractmethod
 
