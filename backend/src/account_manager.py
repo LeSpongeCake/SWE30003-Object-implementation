@@ -1,27 +1,45 @@
-from .account import Account
-from .repository import Repository
+import csv
+
+from .account import Account, CustomerAccount
 from .singleton import Singleton
 
 
 class AccountManager(metaclass=Singleton):
 
-    def __init__(self, repo: Repository):
-        self.repo = repo
+    def __init__(self):
+        self.accounts: dict[int, Account] = {}
+        self.accounts_by_username = {}  # Support logging in by username
 
     def add_account(self, account: Account):
-        self.repo.save(account)
+        self.accounts[account.id] = account
+        self.accounts_by_username[account.username] = account
+
+    def export_csv(self, path: str):
+        """Export the account database to a CSV file."""
+        with open(path, "w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(
+                file, 
+                fieldnames=["id", "name", "username", "password", "role"]
+            )
+            writer.writeheader()
+
+            for id, account in self.accounts.items():
+                writer.writerow({
+                    "id": id,
+                    "name": account.name,
+                    "username": account.username,
+                    "password": account.password,
+                    "role": "customer" if isinstance(account, CustomerAccount) else "admin"
+                })
 
     def get_account_by_id(self, account_id: int) -> Account | None:
-        return self.repo.get_by_id(account_id)
-
+        return self.accounts.get(account_id)
+    
     def get_account_by_username(self, username: str) -> Account | None:
-        return next(
-            (a for a in self.repo.get_all() if a.username == username),
-            None
-        )
-
-    def get_accounts(self) -> list[Account]:
-        return self.repo.get_all()
+        return self.accounts_by_username.get(username)
+    
+    def get_accounts(self) -> dict[int, Account]:
+        return self.accounts
 
     def remove_account(self, account_id: int):
-        self.repo.delete(account_id)
+        self.accounts.pop(account_id, None)

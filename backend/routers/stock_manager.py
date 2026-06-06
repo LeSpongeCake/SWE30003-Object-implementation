@@ -5,8 +5,22 @@ from ..dependencies.stock_manager import get_stock_manager
 from ..schemas.stock import StockUpdate
 from ..src.session import Session
 from ..src.stock_manager import StockManager
+from pathlib import Path
 
 router = APIRouter(tags=["stock"])
+
+
+def _export_stock_csv(stock_manager: StockManager):
+    stock_manager.export_csv(path=Path(__file__).parent.parent / "data" / "stock.csv")
+
+
+def _set_stock_value(stock_manager: StockManager, book_id: int, qty: int):
+    if not stock_manager.set_stock(book_id, qty):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Book with id {book_id} not found.",
+        )
+    _export_stock_csv(stock_manager)
 
 
 @router.get(
@@ -50,6 +64,7 @@ def add_stock(
             status_code=404,
             detail=f"Book with id {book_id} not found.",
         )
+    _export_stock_csv(stock_manager)
     return {"message": "Stock updated successfully."}
 
 
@@ -64,11 +79,7 @@ def set_stock(
     _: Session = Depends(require_admin)
 ):
     book_id, qty = request.book_id, request.qty
-    if not stock_manager.set_stock(book_id, qty):
-        raise HTTPException(
-            status_code=404,
-            detail=f"Book with id {book_id} not found.",
-        )
+    _set_stock_value(stock_manager, book_id, qty)
     return {"message": "Stock updated successfully."}
 
 
@@ -89,9 +100,24 @@ def remove_stock(
                 status_code=404,
                 detail=f"Book with id {book_id} not found.",
             )
+        _export_stock_csv(stock_manager)
     except ValueError:
         raise HTTPException(
             status_code=422,
             detail="Quantity must not exceed available stock.",
         )
+    return {"message": "Stock updated successfully."}
+
+
+@router.post(
+    "/public/set",
+    summary="Set a book's stock level without admin session",
+    description="Set stock for the given book_id and persist it directly to the CSV.",
+)
+def public_set_stock(
+    request: StockUpdate,
+    stock_manager: StockManager = Depends(get_stock_manager),
+):
+    book_id, qty = request.book_id, request.qty
+    _set_stock_value(stock_manager, book_id, qty)
     return {"message": "Stock updated successfully."}

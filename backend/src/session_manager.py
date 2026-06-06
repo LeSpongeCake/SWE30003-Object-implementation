@@ -9,7 +9,7 @@ class SessionManager(metaclass=Singleton):
 		self.current_session: Session = Session(GuestAccount())
 
 	def check_admin_permissions(self) -> bool:
-		return self.current_session.account.role == "admin"
+		return self.current_session.account.get_role() == "Admin"
 
 	def get_current_session(self) -> Session:
 		return self.current_session

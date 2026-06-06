@@ -25,7 +25,7 @@ def get_active_session(session_manager: SessionManager = Depends(get_session_man
 		"account_id": account.id,
 		"name": account.name,
 		"username": account.username,
-		"role": account.role,
+		"role": account.get_role(),
 		"cart_items": session.cart.get_number_of_items()
 	}
 
@@ -51,9 +51,10 @@ def login(
 			"session_id": session.session_id,
 			"account_id": session.account.id,
 			"name": session.account.name,
-			"username": session.account.username
+			"username": session.account.username,
+			"role": session.account.get_role().lower()
 		}
-	return {"error": "Invaild credentials"}
+	return {"error": "Invalid credentials"}
 
 
 @router.post(
@@ -79,12 +80,13 @@ def create_account(
 	account_manager = Depends(get_account_manager)
 ):
 	new_id = max((
-		account.id for account in account_manager.get_accounts()), 
+		id for id in account_manager.get_accounts()), 
 		default=0
 	) + 1
 	request.password = hashlib.sha256(request.password.encode()).hexdigest()
 	account = CustomerAccount(new_id, **request.model_dump())
 	account_manager.add_account(account)
+	account_manager.export_csv(Path(__file__).parent.parent / "data" / "accounts.csv")
 	return {
 		"message": "Account created successfully."
 	}
