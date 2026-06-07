@@ -42,7 +42,7 @@ app.include_router(stock_manager.router, prefix="/stock")
 
 # Serve frontend static files from backend/static (if present) while
 # allowing API routes to take precedence.
-static_dir = Path(__file__).parent / "static"
+static_dir = Path(__file__).parent.parent / "frontend"
 if static_dir.exists():
     from fastapi import Request
     from fastapi.responses import FileResponse
