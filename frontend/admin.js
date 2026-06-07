@@ -34,9 +34,9 @@
         return { label: "Allocate post", next: "Posted" };
       }
       if (order.shippingStatus === "Posted") {
-        return { label: "Close as delivered", next: "Delivered" };
+        return { label: "Close as delivered", next: "In Transit" };
       }
-      return { label: "Mark delivered", next: "Delivered" };
+      return { label: "Mark delivered", next: "In Transit" };
     }
 
     function renderOrders() {

@@ -1,6 +1,6 @@
 import hashlib
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from ..dependencies.account_manager import get_account_manager
 from ..dependencies.session_manager import get_session_manager
@@ -71,7 +71,6 @@ def logout(session_manager: SessionManager = Depends(get_session_manager)):
 
 @router.post(
 	"/create",
-	status_code=status.HTTP_201_CREATED,
 	summary="Create a new account",
 	description="Create a new Customer Account and record the account to the database"
 )
@@ -85,6 +84,14 @@ def create_account(
 	) + 1
 	request.password = hashlib.sha256(request.password.encode()).hexdigest()
 	account = CustomerAccount(new_id, **request.model_dump())
+	
+	# Check if username already exists
+	if account_manager.get_account_by_username(account.username):
+		raise HTTPException(
+			status_code=status.HTTP_409_CONFLICT,
+			detail="Email already in use."
+		)
+
 	account_manager.add_account(account)
 	return {
 		"message": "Account created successfully."
