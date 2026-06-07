@@ -16,7 +16,7 @@ def load_account_manager():
 	{
 		"id": int(row["id"]),
 		"name": row["name"],
-		"username": row["username"],
+		"username": row["username"].lower(),
 		"password": row["password"],
 		"role": row["role"],
 	}
@@ -40,11 +40,11 @@ def load_account_manager():
 
 	if not account_manager.get_account_by_username("admin@bookshelf.local"):
 		new_id = max((int(acc.id) for acc in account_manager.get_accounts().values()), default=0) + 1
-		account_manager.add_account(AdminAccount(new_id, "Admin User", "admin@bookshelf.local", admin_hash))
+		account_manager.add_account(AdminAccount(new_id, "Admin User", "admin@bookshelf.local".lower(), admin_hash))
 		
 	if not account_manager.get_account_by_username("ava@bookshelf.local"):
 		new_id = max((int(acc.id) for acc in account_manager.get_accounts().values()), default=0) + 1
-		account_manager.add_account(CustomerAccount(new_id, "Ava Reader", "ava@bookshelf.local", user_hash))
+		account_manager.add_account(CustomerAccount(new_id, "Ava Reader", "ava@bookshelf.local".lower(), user_hash))
 		
 	return account_manager
 

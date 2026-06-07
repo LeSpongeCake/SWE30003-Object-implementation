@@ -36,7 +36,7 @@
     refresh();
 
     const currentOrder = getOrders().find((entry) => entry.id === order.id) || order;
-    if (currentOrder.shippingStatus !== "Delivered") {
+    if (currentOrder.shippingStatus !== "Delivered" && currentOrder.shippingStatus !== "Cancelled") {
       const elapsed = Date.now() - currentOrder.createdAt;
       const wait = Math.max(0, 10000 - elapsed);
       window.setTimeout(() => {

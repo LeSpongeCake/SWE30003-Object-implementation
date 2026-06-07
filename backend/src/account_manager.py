@@ -12,7 +12,7 @@ class AccountManager(metaclass=Singleton):
 
     def add_account(self, account: Account):
         self.accounts[account.id] = account
-        self.accounts_by_username[account.username] = account
+        self.accounts_by_username[account.username.lower()] = account
 
     def export_csv(self, path: str):
         """Export the account database to a CSV file."""
@@ -36,7 +36,7 @@ class AccountManager(metaclass=Singleton):
         return self.accounts.get(account_id)
     
     def get_account_by_username(self, username: str) -> Account | None:
-        return self.accounts_by_username.get(username)
+        return self.accounts_by_username.get(username.lower())
     
     def get_accounts(self) -> dict[int, Account]:
         return self.accounts

@@ -622,7 +622,7 @@ button:focus-visible {
 }
 
 .table-wrap input {
-  max-width: 120px;
+  max-width: 160px;
 }
 
 .form-grid,
