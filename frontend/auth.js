@@ -17,22 +17,40 @@
       renderSessionLabels();
     });
 
-    loginForm?.addEventListener("submit", (event) => {
+    loginForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const formData = new FormData(loginForm);
       const email = String(formData.get("email") || "").trim().toLowerCase();
       const password = String(formData.get("password") || "").trim();
-      const user = getUsers().find((entry) => entry.email.toLowerCase() === email && entry.password === password);
-      if (!user) {
-        setMessage("authMessage", "Invalid email or password.", "error");
-        return;
+      
+      try {
+        const res = await fetch("/account/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: email, password: password })
+        });
+        const data = await res.json();
+        
+        if (!res.ok || data.error) {
+          setMessage("authMessage", data.error || "Invalid email or password.", "error");
+          return;
+        }
+        
+        const user = {
+          id: data.account_id,
+          name: data.name,
+          email: data.username,
+          role: data.role === "customer" ? "user" : data.role
+        };
+        loginSession(user);
+        setMessage("authMessage", `Signed in as ${user.name}.`, "success");
+        window.location.href = user.role === "admin" ? "admin.html" : "account.html";
+      } catch (err) {
+        setMessage("authMessage", "Network error. Please try again.", "error");
       }
-      loginSession(user);
-      setMessage("authMessage", `Signed in as ${user.name}.`, "success");
-      window.location.href = user.role === "admin" ? "admin.html" : "account.html";
     });
 
-    createForm?.addEventListener("submit", (event) => {
+    createForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const formData = new FormData(createForm);
       const name = String(formData.get("name") || "").trim();
@@ -42,17 +60,44 @@
         setMessage("authMessage", "Fill in every field to create an account.", "error");
         return;
       }
-      const users = getUsers();
-      if (users.some((user) => user.email.toLowerCase() === email)) {
-        setMessage("authMessage", "That email already has an account.", "error");
-        return;
+      
+      try {
+        const res = await fetch("/account/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: name, username: email, password: password })
+        });
+        
+        if (!res.ok) {
+          setMessage("authMessage", "Failed to create an account. Email might be in use.", "error");
+          return;
+        }
+        
+        // Auto-login after creation
+        const loginRes = await fetch("/account/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: email, password: password })
+        });
+        const loginData = await loginRes.json();
+        
+        if (!loginRes.ok || loginData.error) {
+           setMessage("authMessage", "Account created, but auto-login failed.", "error");
+           return;
+        }
+        
+        const user = {
+          id: loginData.account_id,
+          name: loginData.name,
+          email: loginData.username,
+          role: loginData.role === "customer" ? "user" : loginData.role
+        };
+        loginSession(user);
+        setMessage("authMessage", `Account created for ${name}.`, "success");
+        window.location.href = "account.html";
+      } catch (err) {
+        setMessage("authMessage", "Network error. Please try again.", "error");
       }
-      const user = { id: `user-${Date.now().toString(36)}`, name, email, password, role: "user" };
-      users.push(user);
-      saveUsers(users);
-      loginSession(user);
-      setMessage("authMessage", `Account created for ${name}.`, "success");
-      window.location.href = "account.html";
     });
 
     guestButton?.addEventListener("click", () => {

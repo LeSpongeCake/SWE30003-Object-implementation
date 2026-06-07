@@ -149,7 +149,6 @@ def cancel_order(
         if order is None:
             raise HTTPException(status_code=404, detail="Order not found.")
 
-        order_manager.export_csv(str(ORDERS))
         return order
 
     except ValueError as error:

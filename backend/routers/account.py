@@ -51,9 +51,10 @@ def login(
 			"session_id": session.session_id,
 			"account_id": session.account.id,
 			"name": session.account.name,
-			"username": session.account.username
+			"username": session.account.username,
+			"role": session.account.role.lower()
 		}
-	return {"error": "Invaild credentials"}
+	return {"error": "Invalid credentials"}
 
 
 @router.post(
@@ -79,7 +80,7 @@ def create_account(
 	account_manager = Depends(get_account_manager)
 ):
 	new_id = max((
-		account.id for account in account_manager.get_accounts()), 
+		id for id in account_manager.get_accounts()), 
 		default=0
 	) + 1
 	request.password = hashlib.sha256(request.password.encode()).hexdigest()

@@ -3,6 +3,7 @@ from dataclasses import asdict
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from ..dependencies.catalogue import get_catalogue
+from ..dependencies.stock_manager import get_stock_manager
 from ..schemas.book import BookResponse, CreateBookRequest
 from ..src.book import Book
 from ..src.catalogue import Catalogue
@@ -49,6 +50,53 @@ def search(
 )
 def get_books(catalogue: Catalogue = Depends(get_catalogue)):
     return [BookResponse(**asdict(book)) for book in catalogue.get_books()]
+
+
+@router.get(
+    "/with-stock",
+    summary="Get all books with current stock",
+    description="Retrieve all books with an added `stock` field from inventory.",
+)
+def get_books_with_stock(
+    catalogue: Catalogue = Depends(get_catalogue),
+    stock_manager=Depends(get_stock_manager),
+):
+    stock_map = stock_manager.get_stock()
+    result = []
+    for book in catalogue.get_books():
+        data = asdict(book)
+        # normalize for client expectations
+        data["author"] = data.get("authors", [None])[0] if data.get("authors") else None
+        pub_date = data.get("publication_date")
+        try:
+            data["year"] = int(str(pub_date).split("-")[0]) if pub_date else None
+        except Exception:
+            data["year"] = None
+        data["genreKey"] = data.get("genre")
+        data["genreLabel"] = data.get("genre")
+        data["tag"] = data.get("tag", "")
+        data["summary"] = data.get("summary", "")
+        data["stock"] = stock_map.get(data.get("id"), 0)
+        result.append(data)
+    return result
+
+
+@router.get(
+    "/genres",
+    summary="Get available genres",
+    description="Return a list of genres (key, label and count) present in the catalogue.",
+)
+def get_genres(catalogue: Catalogue = Depends(get_catalogue)):
+    books = catalogue.get_books()
+    counts: dict[str, int] = {}
+    for book in books:
+        key = getattr(book, "genre", "") or ""
+        counts[key] = counts.get(key, 0) + 1
+
+    result = []
+    for key, cnt in sorted(counts.items(), key=lambda kv: kv[0]):
+        result.append({"key": key, "label": key, "count": cnt})
+    return result
 
 
 @router.get(

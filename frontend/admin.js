@@ -2,12 +2,17 @@
   const store = window.BookStore;
   const PAGE = document.body.dataset.page || "admin";
   const { getSession, getOrders, getInventory, saveInventory, findBook, updateOrder, addOrderEvent, escapeHtml, formatDate, formatCurrency, setMessage, renderSessionLabels, highlightActiveNav, BOOKS } = store;
+  const PAGE_SIZE = 10;
 
   function renderAdminPage() {
     const adminOrders = document.getElementById("adminOrders");
     const stockTable = document.getElementById("stockTable");
     const adminMessage = document.getElementById("adminMessage");
     const session = getSession();
+    let serverBooks = Array.isArray(BOOKS) ? [...BOOKS] : [];
+    const state = {
+      page: 0,
+    };
 
     function getShippingAction(order) {
       if (order.shippingStatus === "Delivered") {
@@ -64,19 +69,45 @@
 
     function renderStock() {
       if (session.kind !== "admin") {
-        stockTable.innerHTML = "";
+        stockTable.innerHTML = `<article class="empty-state"><h2>Admin access required</h2><p>Sign in with the admin account to manage shipping and stock.</p><a class="button-link" href="login.html">Go to login</a></article>`;
         return;
       }
+      const totalBooks = serverBooks.length;
+      const totalPages = Math.max(1, Math.ceil(totalBooks / PAGE_SIZE));
+      state.page = Math.min(Math.max(state.page, 0), totalPages - 1);
+      const start = state.page * PAGE_SIZE;
+      const visibleBooks = serverBooks.slice(start, start + PAGE_SIZE);
       stockTable.innerHTML = `
         <div class="table-wrap">
+          <div class="action-stack inline" style="justify-content:space-between; margin-bottom:12px;">
+            <button type="button" class="button-link secondary" data-stock-page="prev" ${state.page === 0 ? "disabled" : ""}>← Prev</button>
+            <span class="data-message">Showing ${start + 1}-${Math.min(start + PAGE_SIZE, totalBooks)} of ${totalBooks}</span>
+            <button type="button" class="button-link secondary" data-stock-page="next" ${state.page >= totalPages - 1 ? "disabled" : ""}>Next →</button>
+          </div>
           <table>
             <thead><tr><th>Book</th><th>Genre</th><th>Stock</th><th>Update</th></tr></thead>
             <tbody>
-              ${BOOKS.map((book) => `<tr><td>${escapeHtml(book.title)}</td><td>${escapeHtml(book.genreLabel)}</td><td><input type="number" min="0" value="${getInventory()[book.id]}" data-stock-input="${book.id}" /></td><td><button type="button" class="details-btn" data-save-stock="${book.id}">Save</button></td></tr>`).join("")}
+              ${visibleBooks.map((book) => `<tr><td>${escapeHtml(book.title)}</td><td>${escapeHtml(book.genreLabel)}</td><td><input type="number" min="0" value="${Number(book.stock ?? getInventory()[book.id] ?? 0)}" data-stock-input="${book.id}" /></td><td><button type="button" class="details-btn" data-save-stock="${book.id}">Save</button></td></tr>`).join("")}
             </tbody>
           </table>
         </div>
       `;
+    }
+
+    async function loadBooksForAdmin() {
+      try {
+        const response = await fetch("/books/with-stock");
+        if (!response.ok) {
+          throw new Error("Failed to load books");
+        }
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          serverBooks = data;
+        }
+      } catch (error) {
+        serverBooks = Array.isArray(BOOKS) ? [...BOOKS] : [];
+      }
+      renderStock();
     }
 
     adminOrders?.addEventListener("click", (event) => {
@@ -101,6 +132,12 @@
     });
 
     stockTable?.addEventListener("click", (event) => {
+      const pager = event.target.closest("button[data-stock-page]");
+      if (pager) {
+        state.page += pager.dataset.stockPage === "next" ? 1 : -1;
+        renderStock();
+        return;
+      }
       const button = event.target.closest("button[data-save-stock]");
       if (!button || session.kind !== "admin") {
         return;
@@ -108,15 +145,32 @@
       const bookId = Number(button.dataset.saveStock);
       const input = stockTable.querySelector(`[data-stock-input="${bookId}"]`);
       const nextStock = Math.max(0, Number(input?.value || 0));
-      const inventory = getInventory();
-      inventory[bookId] = nextStock;
-      saveInventory(inventory);
-      renderStock();
-      setMessage("adminMessage", `Stock updated for ${findBook(bookId)?.title || "book"}.`, "success");
+      fetch("/stock/public/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ book_id: bookId, qty: nextStock }),
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+          const inventory = getInventory();
+          inventory[bookId] = nextStock;
+          saveInventory(inventory);
+          return response.json();
+        })
+        .then(() => {
+          setMessage("adminMessage", `Stock updated for ${findBook(bookId)?.title || "book"}.`, "success");
+          return loadBooksForAdmin();
+        })
+        .catch(() => {
+          setMessage("adminMessage", "Failed to update stock.", "error");
+        });
     });
 
     renderOrders();
     renderStock();
+    loadBooksForAdmin();
   }
 
   if (PAGE === "admin") {

@@ -34,32 +34,41 @@
       }
     }
 
-    paymentForm?.addEventListener("submit", (event) => {
-      event.preventDefault();
-      if (items.length === 0) {
-        setMessage("checkoutMessage", "Your cart is empty.", "error");
-        return;
-      }
-      const formData = new FormData(paymentForm);
-      const result = placeOrder({
-        fullName: String(formData.get("fullName") || "").trim(),
-        email: String(formData.get("email") || "").trim(),
-        address: String(formData.get("address") || "").trim(),
-        shippingMethod: String(formData.get("shippingMethod") || "post"),
-        paymentMethod: String(formData.get("paymentMethod") || "card"),
+    if (paymentForm && !paymentForm.dataset.listenerAttached) {
+      paymentForm.dataset.listenerAttached = 'true';
+      paymentForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const latestItems = getCartItems();
+        if (latestItems.length === 0) {
+          setMessage("checkoutMessage", "Your cart is empty.", "error");
+          return;
+        }
+        const formData = new FormData(paymentForm);
+        const result = placeOrder({
+          fullName: String(formData.get("fullName") || "").trim(),
+          email: String(formData.get("email") || "").trim(),
+          address: String(formData.get("address") || "").trim(),
+          shippingMethod: String(formData.get("shippingMethod") || "post"),
+          paymentMethod: String(formData.get("paymentMethod") || "card"),
+        });
+        if (!result.ok) {
+          setMessage("checkoutMessage", result.message, "error");
+          return;
+        }
+        setMessage("checkoutMessage", `Payment confirmed for ${result.order.id}.`, "success");
+        window.location.href = `purchases.html?order=${encodeURIComponent(result.order.id)}&paid=1`;
       });
-      if (!result.ok) {
-        setMessage("checkoutMessage", result.message, "error");
-        return;
-      }
-      setMessage("checkoutMessage", `Payment confirmed for ${result.order.id}.`, "success");
-      window.location.href = `purchases.html?order=${encodeURIComponent(result.order.id)}&paid=1`;
-    });
+    }
   }
 
   if (PAGE === "checkout") {
     renderSessionLabels();
     highlightActiveNav();
     renderCheckoutPage();
+    document.addEventListener('books:loaded', () => {
+      renderSessionLabels();
+      highlightActiveNav();
+      renderCheckoutPage();
+    });
   }
 })();

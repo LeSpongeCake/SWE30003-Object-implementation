@@ -6,7 +6,9 @@
     inventory: "book_catalog_inventory_v2",
   };
 
-  const BOOKS = [
+  // Primary book source: try loading from backend, fall back to local seed
+  const BOOKS = [];
+  const LOCAL_SEED = [
     { id: 1, title: "The Left Hand of Darkness", author: "Ursula K. Le Guin", year: 1969, genreKey: "sci-fi", genreLabel: "Sci-Fi", tag: "Classic", price: 18.5, stock: 6, summary: "A diplomat travels to a world where gender is fluid and every alliance must be renegotiated." },
     { id: 2, title: "The Name of the Wind", author: "Patrick Rothfuss", year: 2007, genreKey: "fiction", genreLabel: "Fiction", tag: "Epic", price: 21, stock: 5, summary: "A gifted student recounts the rise of his legend, the mistakes behind it, and the cost of memory." },
     { id: 3, title: "The Dawn of Everything", author: "David Graeber & David Wengrow", year: 2021, genreKey: "history", genreLabel: "History", tag: "Ideas", price: 24, stock: 4, summary: "A challenge to simple origin stories that asks how societies formed and why alternatives matter." },
@@ -14,6 +16,28 @@
     { id: 5, title: "The Hobbit", author: "J. R. R. Tolkien", year: 1937, genreKey: "adventure", genreLabel: "Adventure", tag: "Quest", price: 16.5, stock: 8, summary: "A reluctant traveler joins a company of dwarves on a journey shaped by treasure, riddles, and courage." },
     { id: 6, title: "Project Hail Mary", author: "Andy Weir", year: 2021, genreKey: "sci-fi", genreLabel: "Sci-Fi", tag: "Modern", price: 22, stock: 5, summary: "A stranded scientist wakes alone in space and must solve a survival puzzle with an unlikely ally." },
   ];
+
+  async function loadBooksFromServer() {
+    try {
+      const res = await fetch('/books/with-stock');
+      if (!res.ok) throw new Error('Network response was not ok');
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        BOOKS.length = 0;
+        BOOKS.push(...data);
+        document.dispatchEvent(new Event('books:loaded'));
+        return;
+      }
+    } catch (e) {
+      // fallback to local seed
+    }
+    BOOKS.length = 0;
+    BOOKS.push(...LOCAL_SEED);
+    document.dispatchEvent(new Event('books:loaded'));
+  }
+
+  // Kick off loading immediately; pages will re-render when event fires.
+  loadBooksFromServer();
 
   const DEFAULT_USERS = [
     { id: "admin", name: "Admin User", email: "admin@bookshelf.local", password: "admin123", role: "admin" },
@@ -47,6 +71,25 @@
   }
 
   function getInventory() {
+    // Prefer server-provided BOOKS stock when available
+    try {
+      if (Array.isArray(BOOKS) && BOOKS.length > 0) {
+        const map = {};
+        BOOKS.forEach((book) => {
+          map[book.id] = Number(book.stock ?? 0);
+        });
+        // Merge any locally stored inventory overrides
+        const local = readJSON(STORAGE_KEYS.inventory, null);
+        // prefer server-provided values; localStorage only provides fallbacks
+        const merged = Object.assign({}, local && typeof local === 'object' && !Array.isArray(local) ? local : {}, map);
+        // keep localStorage in sync with authoritative server values
+        writeJSON(STORAGE_KEYS.inventory, merged);
+        return merged;
+      }
+    } catch (e) {
+      // fall back to localStorage below
+    }
+
     const inventory = readJSON(STORAGE_KEYS.inventory, null);
     if (inventory && typeof inventory === "object" && !Array.isArray(inventory)) {
       return inventory;
@@ -123,6 +166,15 @@
   }
 
   function getBookStock(bookId) {
+    // If BOOKS array has server stock values, prefer them
+    try {
+      if (Array.isArray(BOOKS) && BOOKS.length > 0) {
+        const book = findBook(bookId);
+        if (book && typeof book.stock !== 'undefined') return Number(book.stock || 0);
+      }
+    } catch (e) {
+      // ignore and fall back
+    }
     const inventory = getInventory();
     const book = findBook(bookId);
     return Number(inventory[bookId] ?? book?.stock ?? 0);
@@ -192,6 +244,25 @@
     document.querySelectorAll("[data-page-link]").forEach((link) => {
       link.classList.toggle("active", link.dataset.pageLink === page);
     });
+
+    const session = getSession();
+    const loginLinks = document.querySelectorAll('a[data-page-link="login"]');
+    if (session.kind === "user" || session.kind === "admin") {
+      loginLinks.forEach(link => {
+        link.textContent = "Sign Out";
+        // Override default link behavior to handle sign out
+        link.onclick = (e) => {
+          e.preventDefault();
+          createGuestSession();
+          window.location.href = "index.html";
+        };
+      });
+    } else {
+      loginLinks.forEach(link => {
+        link.textContent = "Login / Create";
+        link.onclick = null; // restore normal link behavior
+      });
+    }
   }
 
   function setMessage(targetId, message, tone = "info") {
@@ -265,7 +336,7 @@
     return updated;
   }
 
-  function placeOrder(paymentData) {
+  async function placeOrder(paymentData) {
     const session = getSession();
     const sessionId = getSessionIdentifier(session);
     const cartItems = getCartItems(sessionId);
@@ -278,8 +349,21 @@
       if (item.quantity > Number(inventory[item.id] ?? 0)) {
         return { ok: false, message: `Not enough stock for ${item.title}.` };
       }
+      // Update backend stock
+      const newStock = Number(inventory[item.id] ?? 0) - item.quantity;
+      try {
+        await fetch("/stock/public/set", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ book_id: item.id, qty: newStock }),
+        });
+      } catch (e) {
+        console.error("Failed to update stock for book:", item.id, e);
+        // Depending on requirements, we might want to roll back or notify user differently
+        return { ok: false, message: `Failed to update stock for ${item.title}. Please try again.` };
+      }
     }
-
+    // Update local storage inventory after successful backend update
     cartItems.forEach((item) => {
       inventory[item.id] = Number(inventory[item.id] ?? 0) - item.quantity;
     });
@@ -325,6 +409,12 @@
   function loginSession(user) {
     saveSession({ kind: user.role, userId: user.id, id: `${user.role}-${user.id}`, name: user.name });
   }
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === STORAGE_KEYS.session) {
+      window.location.reload();
+    }
+  });
 
   window.BookStore = {
     STORAGE_KEYS,

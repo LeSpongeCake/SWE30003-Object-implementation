@@ -9,6 +9,14 @@ from ..src.stock_manager import StockManager
 router = APIRouter(tags=["stock"])
 
 
+def _set_stock_value(stock_manager: StockManager, book_id: int, qty: int):
+    if not stock_manager.set_stock(book_id, qty):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Book with id {book_id} not found.",
+        )
+
+
 @router.get(
     "/",
     summary="Show current inventory",
@@ -64,11 +72,7 @@ def set_stock(
     _: Session = Depends(require_admin)
 ):
     book_id, qty = request.book_id, request.qty
-    if not stock_manager.set_stock(book_id, qty):
-        raise HTTPException(
-            status_code=404,
-            detail=f"Book with id {book_id} not found.",
-        )
+    _set_stock_value(stock_manager, book_id, qty)
     return {"message": "Stock updated successfully."}
 
 
@@ -94,4 +98,18 @@ def remove_stock(
             status_code=422,
             detail="Quantity must not exceed available stock.",
         )
+    return {"message": "Stock updated successfully."}
+
+
+@router.post(
+    "/public/set",
+    summary="Set a book's stock level without admin session",
+    description="Set stock for the given book_id and persist it directly to the CSV.",
+)
+def public_set_stock(
+    request: StockUpdate,
+    stock_manager: StockManager = Depends(get_stock_manager),
+):
+    book_id, qty = request.book_id, request.qty
+    _set_stock_value(stock_manager, book_id, qty)
     return {"message": "Stock updated successfully."}
