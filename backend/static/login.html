@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login or Create</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="login">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Login</p>
+      <strong>Use a guest, user, or admin session.</strong>
+    </div>
+    <div class="topbar-meta">
+      <span class="status-pill" data-session-label>Loading session</span>
+      <span class="status-pill">Cart: <strong data-cart-count>0</strong></span>
+    </div>
+  </header>
+  <nav class="nav-shell" aria-label="Main navigation">
+    <a class="nav-link" data-page-link="catalog" href="index.html">Catalog</a>
+    <a class="nav-link" data-page-link="cart" href="cart.html">Cart</a>
+    <a class="nav-link" data-page-link="checkout" href="checkout.html">Payment</a>
+    <a class="nav-link" data-page-link="purchases" href="purchases.html">Purchases</a>
+    <a class="nav-link" data-page-link="tracking" href="tracking.html">Tracking</a>
+    <a class="nav-link" data-page-link="account" href="account.html">Account</a>
+    <a class="nav-link" data-page-link="guest" href="guest.html">Guest</a>
+    <a class="nav-link" data-page-link="admin" href="admin.html">Admin</a>
+    <a class="nav-link nav-cta active" data-page-link="login" href="login.html">Login / Create</a>
+  </nav>
+  <main class="page-shell auth-grid">
+    <section class="auth-card">
+      <p class="eyebrow">Sign in</p>
+      <h2>Existing account</h2>
+      <form id="loginForm" class="form-grid">
+        <label class="field-stack">
+          <span>Email</span>
+          <input name="email" type="email" placeholder="admin@bookshelf.local or ava@bookshelf.local" required />
+        </label>
+        <label class="field-stack">
+          <span>Password</span>
+          <input name="password" type="password" placeholder="admin123 or user123" required />
+        </label>
+        <button class="button-link" type="submit">Sign in</button>
+      </form>
+    </section>
+    <section class="auth-card">
+      <p class="eyebrow">Create</p>
+      <h2>User account</h2>
+      <form id="createForm" class="form-grid">
+        <label class="field-stack">
+          <span>Name</span>
+          <input name="name" type="text" placeholder="Your name" required />
+        </label>
+        <label class="field-stack">
+          <span>Email</span>
+          <input name="createEmail" type="email" placeholder="you@example.com" required />
+        </label>
+        <label class="field-stack">
+          <span>Password</span>
+          <input name="createPassword" type="password" placeholder="Choose a password" required />
+        </label>
+        <button class="button-link" type="submit">Create user</button>
+      </form>
+    </section>
+    <section class="auth-card">
+      <p class="eyebrow">Guest</p>
+      <h2>Browse without signing in</h2>
+      <p class="muted">This creates a guest session and keeps cart and purchases linked to this browser.</p>
+      <div class="hero-actions">
+        <button id="guestButton" class="button-link" type="button">Continue as guest</button>
+        <button id="signOutButton" class="button-link secondary" type="button">Reset to guest</button>
+      </div>
+      <p id="authMessage" class="data-message">Ready.</p>
+    </section>
+  </main>
+  <script src="shared.js?v=8"></script>
+  <script src="auth.js?v=8"></script>
+</body>
+</html>

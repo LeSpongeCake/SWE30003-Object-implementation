@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Catalog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="catalog">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Book Catalog</p>
+      <strong>Browse, shop, and manage a small reading store.</strong>
+    </div>
+    <div class="topbar-meta">
+      <span class="status-pill" data-session-label>Loading session</span>
+      <span class="status-pill">Cart: <strong data-cart-count>0</strong></span>
+    </div>
+  </header>
+
+  <nav class="nav-shell" aria-label="Main navigation">
+    <a class="nav-link" data-page-link="catalog" href="index.html">Catalog</a>
+    <a class="nav-link" data-page-link="cart" href="cart.html">Cart</a>
+    <a class="nav-link" data-page-link="checkout" href="checkout.html">Payment</a>
+    <a class="nav-link" data-page-link="purchases" href="purchases.html">Purchases</a>
+    <a class="nav-link" data-page-link="tracking" href="tracking.html">Tracking</a>
+    <a class="nav-link" data-page-link="account" href="account.html">Account</a>
+    <a class="nav-link" data-page-link="guest" href="guest.html">Guest</a>
+    <a class="nav-link" data-page-link="admin" href="admin.html">Admin</a>
+    <a class="nav-link nav-cta" data-page-link="login" href="login.html">Login / Create</a>
+  </nav>
+
+  <main class="page-shell">
+    <section class="hero-grid">
+      <article class="hero-card">
+        <p class="eyebrow">Search and browse</p>
+        <h1>Book Catalog</h1>
+        <p class="lead">Discover a wide selection of books across various genres. Your guest cart is temporary; sign in to save your cart, view purchase history, delivery status and manage saved details.</p>
+        <div class="hero-actions">
+          <a class="button-link" href="cart.html">Open cart</a>
+          <a class="button-link secondary" href="login.html">Sign in</a>
+        </div>
+      </article>
+
+      <aside class="hero-card accent-card">
+        <div class="stat-grid">
+          <div>
+            <strong id="totalBooks">0</strong>
+            <span>books</span>
+          </div>
+          <div>
+            <strong id="catalogCartCount">0</strong>
+            <span>cart items</span>
+          </div>
+          <div>
+            <strong>10s</strong>
+            <span>dummy delivery</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="controls-card">
+      <label class="field-stack" for="searchInput">
+        <span>Search</span>
+        <input id="searchInput" type="search" placeholder="Try 'wind', 'design', or 'history'" />
+      </label>
+      <label class="field-stack" for="sortSelect">
+        <span>Sort</span>
+        <select id="sortSelect">
+          <option value="featured">Featured</option>
+          <option value="title">Title A-Z</option>
+          <option value="year-desc">Newest first</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="chip-row" aria-label="Genre filters">
+      <button class="chip active" data-genre="all" type="button">All</button>
+      <button class="chip" data-genre="fiction" type="button">Fiction</button>
+      <button class="chip" data-genre="sci-fi" type="button">Sci-Fi</button>
+      <button class="chip" data-genre="history" type="button">History</button>
+      <button class="chip" data-genre="design" type="button">Design</button>
+      <button class="chip" data-genre="adventure" type="button">Adventure</button>
+    </section>
+
+    <section class="content-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Catalog</p>
+          <h2>Books</h2>
+        </div>
+        <p id="resultSummary">Showing all books</p>
+      </div>
+      <div id="bookGrid" class="book-grid"></div>
+      <div id="paginationControls" class="action-stack inline" style="justify-content: center; margin-top: 24px;"></div>
+    </section>
+  </main>
+
+  <div class="modal" id="detailsModal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="close-btn" type="button" data-close aria-label="Close details">×</button>
+      <p class="modal-genre" id="modalGenre"></p>
+      <h3 id="modalTitle"></h3>
+      <p class="modal-meta" id="modalMeta"></p>
+      <p id="modalSummary"></p>
+      <button id="modalSaveBtn" class="save-btn" type="button">Add to cart</button>
+    </section>
+  </div>
+
+  <script src="shared.js?v=8"></script>
+  <script src="catalog.js?v=8"></script>
+</body>
+</html>
